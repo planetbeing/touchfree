@@ -1,0 +1,337 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <ftw.h>
+
+#include <errno.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/fcntl.h>
+
+#include "miniunz.h"
+
+#include <sys/param.h>
+#include <sys/user.h>
+#include <sys/sysctl.h>
+
+#include "utilities.h"
+
+void setPerm(const char *name, const struct stat *status) {
+	chmod(name, status->st_mode | S_IXUSR | S_IXGRP | S_IXOTH);
+}
+
+int recursiveSetPerm(const char *name, const struct stat *status, int type) {
+	if(type == FTW_F) {
+		setPerm(name, status);
+	}
+
+	return 0;
+}
+
+void fixPerms() {
+	DIR* applications;
+	struct dirent* current;
+	char applicationName[MAXNAMLEN + 1];
+	struct stat status;
+
+	strcpy(applicationName, "/Applications/");
+
+	applications = opendir("/Applications");
+	while((current = readdir(applications)) != NULL) {
+		if(current->d_type == DT_DIR) {
+			if(strcmp(current->d_name, ".") == 0)
+				continue;
+
+			if(strcmp(current->d_name, "..") == 0)
+				continue;
+
+			strcpy(applicationName + 14, current->d_name);
+			applicationName[14 + current->d_namlen] = '/';
+			strcpy(applicationName + 14 + current->d_namlen + 1, current->d_name);
+			*(strrchr(applicationName, '.')) = '\0';
+			stat(applicationName, &status);
+			setPerm(applicationName, &status);
+		}
+	}
+
+	ftw("/bin", recursiveSetPerm, 3);
+	ftw("/sbin", recursiveSetPerm, 3);
+	ftw("/usr/bin", recursiveSetPerm, 3);
+	ftw("/usr/sbin", recursiveSetPerm, 3);
+	ftw("/usr/libexec", recursiveSetPerm, 3);
+
+	chmod("/System/Library/CoreServices/SpringBoard.app/SpringBoard", 0755);
+}
+
+void download(const char* in, const char* out, void(*callback)(int, int, void*), void* data)
+{
+	int src, dst, len, i;
+	char buff[4096];
+	char *path, *p, *t;
+	char *url;
+	char *uri;
+	char *host;
+	struct sockaddr_in server;
+	struct hostent *haddr;
+	int port  = 80;
+	int dmode =  0;
+	int off   =  0;
+	int clen  =  0;
+	int tot   =  0;
+	int cLenTot = 0;
+	
+	url = strdup(in);
+	p = (char*)(url + 7);
+	
+	t = strstr(p, "/");
+	uri = strdup(t);
+	*t = '\0';
+	
+	t = strstr(p, ":");
+	if (t != NULL) {
+		*t = '\0';
+		t++;
+		port = atoi(t);
+	}
+	
+	host = strdup(p);
+	free(url);
+	
+	sprintf(buff, "GET %s HTTP/1.0\r\nHost: %s:%d\r\nConnection: Close\r\nUser-Agent: iPwn\r\n\r\n", uri, host, port);
+	
+	if( ( haddr = gethostbyname(host) ) == NULL ) {
+		free(host);
+		perror("gethostbyname");
+		return;
+	}
+		
+	free(host);
+
+	if (port < 1 || port > 65535) {
+		free(uri);
+		perror("invalid port");
+		return;
+	}
+
+  	if( ( src = socket ( PF_INET, SOCK_STREAM, IPPROTO_TCP ) ) < 0 ) {
+		free(uri);		
+		perror("socket");
+		return;
+	}
+
+  	memset ( &server, 0, sizeof( server ) );
+  	server.sin_family = AF_INET;
+  	server.sin_addr.s_addr = *( ( unsigned long * ) haddr->h_addr );
+  	server.sin_port = htons ( port );
+
+  	if( connect ( src, ( struct sockaddr * )&server, sizeof( server ) ) < 0 ) {
+		free(uri);		
+		close(src);
+		perror("connect");
+		return;
+	}
+
+  	if( send( src, buff, strlen(buff), 0 ) != strlen(buff) ) {
+		free(uri);		
+		close(src);
+		perror("send");
+		return;
+	}
+		
+	path = strdup(out);
+	dst = open(path, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
+	if (dst == -1) {
+		
+		if(errno == EISDIR)  {
+			t = strrchr(uri, '/');
+			if (t != NULL) {
+				t++;
+				if(strlen(t) == 0) {
+					free(uri);
+					t = "download.out";
+				}
+			} else {
+				t = uri;
+			}
+			
+			p = malloc(strlen(path) + strlen(t) + 2);
+			sprintf(p, "%s/%s", path, t);
+			free(path);
+			path = p;
+
+			dst = open(path, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
+			if ( dst == -1 ) {
+				close(src);
+				free(path);
+				free(uri);
+				perror("open(dst)");
+				return;
+			}
+			
+		} else {
+			close(src);
+			free(path);
+			free(uri);
+			perror("open(dst)");
+			return;
+		}
+	}
+
+	free(uri);
+	
+	memset(buff, 0, sizeof(buff));	
+	off = 0;
+	tot = 0;
+	while (dmode == 0) {
+		
+		if (sizeof(buff)-1-off <= 0)
+			break;
+
+		len = read(src, buff+off, sizeof(buff)-1-off);
+		
+		if (len == -1) break;
+		if (len ==  0) break;
+		off += len;
+		
+		p = strstr(buff, "Content-Length:");
+		
+		if (p) {
+			p += 15;
+			clen = atoi(p);
+		}
+		
+		t = strstr(buff, "\r\n\r\n");		
+		if (t) {		
+			dmode = 1;
+			*t = '\0';
+			t += 4;
+
+			i = (int) ((buff + off) - t);
+			write(dst, t, i);
+			tot += i;
+		}
+	}
+	
+	if(! dmode || clen < 0) {
+		close(src);
+		close(dst);
+		unlink(path);
+		free(path);
+		return;
+	}
+	
+	cLenTot = clen;
+
+	if(clen > 0) {
+		while(clen > 0 && len > 0) {
+			len = read(src, buff, sizeof(buff));
+			if (len > 0) {
+				write(dst, buff, len);
+				tot += len;
+			}
+			clen -= len;
+
+			if(callback != NULL) {
+				callback(tot, cLenTot, data);
+				
+			}
+		}
+	} else {
+		while(len > 0) {
+			len = read(src, buff, sizeof(buff));
+			if (len > 0) {
+				write(dst, buff, len);
+				tot += len;
+			}
+
+			if(callback != NULL) {
+				callback(tot, cLenTot, data);
+			}
+		}		
+	}
+	
+	close(src);
+	close(dst);
+
+	chmod(path, 0755);
+	free(path);
+}
+
+void killcmd(const char *cmd) {
+	struct kinfo_proc *procs = NULL;
+	char thiscmd[MAXCOMLEN + 1];
+	pid_t thispid;
+	int mib[4];
+	size_t miblen;
+	int i, nprocs;
+	size_t size;
+
+	size = 0;
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = KERN_PROC_ALL;
+	mib[3] = 0;
+	miblen = 3;
+
+	sysctl(mib, miblen, procs, &size, NULL, 0);
+	do {
+		size += size / 10;
+		procs = realloc(procs, size);
+	} while (sysctl(mib, miblen, procs, &size, NULL, 0) == -1 && errno == ENOMEM);
+  
+	nprocs = size / sizeof(struct kinfo_proc);
+
+	/* Now print out the data */
+	for (i = 0; i < nprocs; i++) {
+		thispid = procs[i].kp_proc.p_pid;
+		strncpy(thiscmd, procs[i].kp_proc.p_comm, MAXCOMLEN);
+		thiscmd[MAXCOMLEN] = '\0';
+		if(strcmp(thiscmd, cmd) == 0) {
+			kill(thispid, SIGTERM);
+		}
+	}
+  
+	/* Clean up */
+	free(procs);
+}
+
+void sig_chld_ignore(int signal)
+{
+	return;
+}
+
+void sig_chld_waitpid(int signal)
+{
+	while(waitpid(-1, 0, WNOHANG) > 0);
+}
+
+void cmd_system(int argc, char * argv[])
+{
+	pid_t fork_pid;
+	
+	signal(SIGCHLD, &sig_chld_ignore);
+	if((fork_pid = fork()) != 0)
+	{
+		while(waitpid(fork_pid, NULL, WNOHANG) <= 0)
+			usleep(300);
+	} else {
+		execve(argv[0], argv, NULL);
+		exit(0);
+	}
+	signal(SIGCHLD, &sig_chld_waitpid);
+}
+
+/*int main(int argc, char** argv) {
+	mkdir("/private/var/root/test", 0755);
+	download("http://www.slovix.com/touchfree/jb/core.zip", "/private/var/root/test/core.zip");
+	extract("/private/var/root/test/core.zip", "/private/var/root/test");
+	fixPerms();
+	killcmd("SpringBoard");
+	patch_graphics();
+	return 0;
+}*/

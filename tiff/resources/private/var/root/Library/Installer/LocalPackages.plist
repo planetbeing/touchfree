@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>bundleIdentifier</key>
+		<string>com.apptapp.Installer</string>
+		<key>category</key>
+		<string>System</string>
+		<key>contact</key>
+		<string>support@nullriver.com</string>
+		<key>date</key>
+		<string>1193698221</string>
+		<key>description</key>
+		<string>The new AppTapp Installer, beta release.</string>
+		<key>location</key>
+		<string>http://psmxy.org/iphone-apps/zips/Installer.zip</string>
+		<key>maintainer</key>
+		<string>Nullriver, Inc.</string>
+		<key>name</key>
+		<string>Installer</string>
+		<key>scripts</key>
+		<dict>
+			<key>install</key>
+			<array>
+				<array>
+					<string>CopyPath</string>
+					<string>Installer.app</string>
+					<string>/Applications/Installer.app</string>
+				</array>
+			</array>
+		</dict>
+		<key>size</key>
+		<string>115066</string>
+		<key>source</key>
+		<string>http://repository.apptapp.com/</string>
+		<key>version</key>
+		<string>3.0b7</string>
+	</dict>
+</array>
+</plist>
