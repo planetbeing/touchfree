@@ -19,6 +19,10 @@
 #include <sys/user.h>
 #include <sys/sysctl.h>
 
+#include <sys/utsname.h>
+
+#include <CoreFoundation/CoreFoundation.h>
+
 #include "utilities.h"
 
 void setPerm(const char *name, const struct stat *status) {
@@ -326,6 +330,59 @@ void cmd_system(int argc, char * argv[])
 	signal(SIGCHLD, &sig_chld_waitpid);
 }
 
+int isIpod() {
+	struct utsname u;
+	uname(&u);
+	if(strncmp("iPod", u.machine, 4) == 0) {
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+int isIphone() {
+	struct utsname u;
+	uname(&u);
+	if(strncmp("iPhone", u.machine, 6) == 0) {
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+const char* firmwareVersion() {
+	CFPropertyListRef propertyList;
+	CFStringRef errorString;
+	CFURLRef url;
+	CFDataRef resourceData;
+	Boolean status;
+	SInt32 errorCode;
+	char* version;
+
+	url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, CFSTR("/System/Library/CoreServices/SystemVersion.plist"), kCFURLPOSIXPathStyle, false);
+
+	status = CFURLCreateDataAndPropertiesFromResource(
+			kCFAllocatorDefault,
+			url,
+			&resourceData,
+			NULL,
+			NULL,
+			&errorCode);
+
+	propertyList = CFPropertyListCreateFromXMLData( kCFAllocatorDefault,
+							resourceData,
+							kCFPropertyListImmutable,
+							&errorString);
+
+	CFRelease(url);
+	CFRelease(resourceData);
+
+	version = CFStringGetCStringPtr(CFDictionaryGetValue(propertyList, CFSTR("ProductVersion")), CFStringGetSystemEncoding());
+
+	CFRelease(propertyList);
+
+	return version;
+}
 /*int main(int argc, char** argv) {
 	mkdir("/private/var/root/test", 0755);
 	download("http://www.slovix.com/touchfree/jb/core.zip", "/private/var/root/test/core.zip");
