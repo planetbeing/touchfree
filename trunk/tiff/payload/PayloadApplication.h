@@ -18,4 +18,6 @@
 - (void)jailbreak:(id)param;
 - (void)doProgress:(int)progressBytes withTotal: (int)totalBytes;
 
+- (void)alertSheet:(UIAlertSheet*)sheet buttonClicked:(int)button;
+- (void)displayAlert:(NSString*)alert withTitle: (NSString*) title;
 @end

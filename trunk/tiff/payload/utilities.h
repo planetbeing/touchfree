@@ -7,4 +7,6 @@ void download(const char* in, const char* out, void(*callback)(int, int, void*),
 void fixPerms();
 int isIpod();
 int isIphone();
-const char* firmwareVersion();
+char* firmwareVersion();
+const char* deviceName();
+int fileExists(const char* fileName);
