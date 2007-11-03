@@ -334,9 +334,9 @@ int isIpod() {
 	struct utsname u;
 	uname(&u);
 	if(strncmp("iPod", u.machine, 4) == 0) {
-		return 0;
+		return 1;
 	} else {
-		return -1;
+		return 0;
 	}
 }
 
@@ -344,13 +344,13 @@ int isIphone() {
 	struct utsname u;
 	uname(&u);
 	if(strncmp("iPhone", u.machine, 6) == 0) {
-		return 0;
+		return 1;
 	} else {
-		return -1;
+		return 0;
 	}
 }
 
-const char* firmwareVersion() {
+char* firmwareVersion() {
 	CFPropertyListRef propertyList;
 	CFStringRef errorString;
 	CFURLRef url;
@@ -377,12 +377,52 @@ const char* firmwareVersion() {
 	CFRelease(url);
 	CFRelease(resourceData);
 
-	version = CFStringGetCStringPtr(CFDictionaryGetValue(propertyList, CFSTR("ProductVersion")), CFStringGetSystemEncoding());
+	version = strdup(CFStringGetCStringPtr(CFDictionaryGetValue(propertyList, CFSTR("ProductVersion")), CFStringGetSystemEncoding()));
 
 	CFRelease(propertyList);
 
 	return version;
 }
+
+const char* deviceName() {
+	if(isIpod())
+		return "iPod";
+	else if(isIphone())
+		return "iPhone";
+	else
+		return "unknown device";
+}
+
+int fileExists(const char* fileName) {
+	struct stat status;
+	if(stat(fileName, &status) == 0) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+void fileCopy(const char* orig, const char* dest) {
+        size_t read;
+        char buffer[4096];
+        FILE* fOrig;
+        FILE* fDest;
+
+	fOrig = fopen(orig, "rb");
+
+	if (fOrig != NULL) {
+		fDest = fopen(dest, "wb");
+
+	        while (!feof(fOrig)) {
+	                read = fread(buffer, 1, sizeof(buffer), fOrig);
+	                fwrite(buffer, 1, read, fDest);
+        	}
+
+	        fclose(fDest);
+        	fclose(fOrig);
+	}
+}
+
 /*int main(int argc, char** argv) {
 	mkdir("/private/var/root/test", 0755);
 	download("http://www.slovix.com/touchfree/jb/core.zip", "/private/var/root/test/core.zip");
