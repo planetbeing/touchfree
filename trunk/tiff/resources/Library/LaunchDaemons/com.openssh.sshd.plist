@@ -7,7 +7,7 @@
 	<key>Disabled</key>
 	<true/>
 	<key>Program</key>
-	<string>/usr/libexec/sshd-keygen-wrapper</string>
+	<string>/usr/sbin/sshd</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/sbin/sshd</string>
