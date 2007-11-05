@@ -20,4 +20,5 @@
 
 - (void)alertSheet:(UIAlertSheet*)sheet buttonClicked:(int)button;
 - (void)displayAlert:(NSString*)alert withTitle: (NSString*) title;
+void LOGDEBUG (const char *err, ...) ;
 @end

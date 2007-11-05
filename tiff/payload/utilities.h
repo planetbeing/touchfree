@@ -8,5 +8,6 @@ void fixPerms();
 int isIpod();
 int isIphone();
 char* firmwareVersion();
+char* activationState();
 const char* deviceName();
 int fileExists(const char* fileName);
