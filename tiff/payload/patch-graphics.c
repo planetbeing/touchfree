@@ -39,90 +39,26 @@
  > 307ea4ac      eafffe4a        b 0x307e9ddc
  *
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#define MS_SIZE   3291960
-#define MS_FILE "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics"
-
-
-
-struct Patch {
-        unsigned int offset;
-        unsigned int old;
-        unsigned int new;
-};
-
-struct Patch patches[] = {
-        {0x001f747c,        0xe1d430b2,        0xe5943004},
-        {0x001f7480,        0xe2433001,        0xe3530002},
-        {0x001f7484,        0xe3530007,        0xcafffdf8},
-        {0x001f7488,        0x908ff103,        0xe1d430b2},
-        {0x001f748c,        0xeafffe52,        0xe3530001},
-        {0x001f7490,        0xea000006,        0x0a000006},
-        {0x001f7494,        0xeafffe50,        0xe3530006},
-        {0x001f7498,        0xea000050,        0x0a000004},
-        {0x001f749c,        0xeafffe4e,        0xe3530003},
-        {0x001f74a0,        0xeafffe4d,        0x0a00004e},
-        {0x001f74a4,        0xea000001,        0xe3530008},
-        {0x001f74a8,        0xeafffe4b,        0x0a00004c},
-        {0x001f74ac,        0xea00004b,        0xeafffe4a},
-    { 0, 0, 0 }
-};
+#include "patch.h"
 
 void patch_graphics() {
-    unsigned int *DATA;
-    FILE *fd;
-    struct stat s;
-    char *filename;
-    int len;
-    char *newName;
-    struct Patch *patch;
-    int offset;
-    unsigned int old;
+	struct Patch patches[] = {
+		{0x001f747c,        0xe1d430b2,        0xe5943004},
+		{0x001f7480,        0xe2433001,        0xe3530002},
+		{0x001f7484,        0xe3530007,        0xcafffdf8},
+		{0x001f7488,        0x908ff103,        0xe1d430b2},
+		{0x001f748c,        0xeafffe52,        0xe3530001},
+		{0x001f7490,        0xea000006,        0x0a000006},
+		{0x001f7494,        0xeafffe50,        0xe3530006},
+		{0x001f7498,        0xea000050,        0x0a000004},
+		{0x001f749c,        0xeafffe4e,        0xe3530003},
+		{0x001f74a0,        0xeafffe4d,        0x0a00004e},
+		{0x001f74a4,        0xea000001,        0xe3530008},
+		{0x001f74a8,        0xeafffe4b,        0x0a00004c},
+		{0x001f74ac,        0xea00004b,        0xeafffe4a},
+		{ 0, 0, 0 }
+	};
 
-    filename = MS_FILE;
-    
-    len = strlen(filename);
-    
-    newName = malloc(len+5);
-    strcpy(newName, filename);
-    strcpy(newName+len,".new");
-    
-    if(stat(filename, &s)!=0) return;
-    if(s.st_size != MS_SIZE) return;
-       
-    fd = fopen(filename, "rb");
-    if(fd == NULL) return;
-    DATA = malloc(MS_SIZE+1);
-    if(DATA == NULL) return;
-    fread(DATA, MS_SIZE, 1, fd);
-    fclose(fd);
-
-    patch = patches;
-    while (patch->offset) {
-            offset = patch->offset / 4;
-            old = DATA[offset];
-            if (old != patch->old) {
-                    return;
-            }
-            DATA[offset] = patch->new;
-            patch++;
-    }
-
-    fd = fopen(newName, "wb");
-    if(fd == NULL) return;
-    if(fwrite(DATA, MS_SIZE, 1, fd) != 1) return;
-    fclose(fd);
-    
-    unlink(filename);
-    link(newName,filename);
-    unlink(newName);
+	patch("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", 3291960, patches, 1);
 }
 
