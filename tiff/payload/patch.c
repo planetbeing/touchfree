@@ -52,10 +52,14 @@ void patch(char* MS_FILE, long MS_SIZE, struct Patch *patches, char enforce) {
     if(fd == NULL) return;
     if(fwrite(DATA, MS_SIZE, 1, fd) != 1) return;
     fclose(fd);
+
+    sync();
     
     unlink(filename);
     link(newName,filename);
     unlink(newName);
+
+    sync();
 
     free(newName);
     free(DATA);
