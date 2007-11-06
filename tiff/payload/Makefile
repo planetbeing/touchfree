@@ -3,7 +3,7 @@ LD=arm-apple-darwin-gcc
 LDFLAGS=-lobjc -framework CoreFoundation -framework Foundation -framework UIKit -framework LayerKit
 
 UI_OBJS = payload.o PayloadApplication.o
-UTIL_OBJS = utilities.o patch-graphics.o patch.o
+UTIL_OBJS = utilities.o patches.o patch.o
 UNZ_OBJS = miniunz.o unzip.o ioapi.o ~/zlib-1.2.3/libz.a
 ALL_OBJS = $(UI_OBJS) $(UTIL_OBJS) $(UNZ_OBJS)
 
