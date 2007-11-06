@@ -40,6 +40,7 @@
  *
  */
 #include "patch.h"
+#include "patches.h"
 
 void patch_graphics() {
 	struct Patch patches[] = {
@@ -62,3 +63,24 @@ void patch_graphics() {
 	patch("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", 3291960, patches, 1);
 }
 
+void patch_springboard() {
+	struct Patch patches[] = {
+		{0x0007c564,        0x0901000a,        0x00000000},
+		{ 0, 0, 0 }
+	};
+
+	patch("/System/Library/CoreServices/SpringBoard.app/SpringBoard", 777964, patches, 0);
+}
+
+void patch_lockdownd() {
+	struct PatchByte patches[] = {
+		{0x0000b810,	0,	0x00},
+		{0x0000b812,	0,	0xa0},
+		{0x0000b813,	0,	0xe1},
+		{0x0000b814,	0,	0x54},
+		{0x0000b818,	0,	0x00},
+		{ 0, 0, 0 }
+	};
+
+	patchBytes("/usr/libexec/lockdownd", 819328, patches, 0);
+}

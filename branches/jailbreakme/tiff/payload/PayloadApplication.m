@@ -19,14 +19,7 @@
 #include <sys/reboot.h>
 
 #include "utilities.h"
-
-#define LD_SIZE 819328
-#define LD_FILE "/usr/libexec/lockdownd"
-
-#define SB_SIZE   777964
-#define SB_OFFSET 509284
-#define SB_FILE "/System/Library/CoreServices/SpringBoard.app/SpringBoard"
-
+#include "patches.h"
 
 void progressCallback(int progress, int total, void* application) {
 	PayloadApplication* myApp = (PayloadApplication*) application;
@@ -99,16 +92,7 @@ void progressCallback(int progress, int total, void* application) {
 
 	LOGDEBUG("Patching SpringBoard...");
 	[self setProgressHUDText: @"Patching SpringBoard..."];
-	
-    fd = fopen(SB_FILE, "r+");
-	
-	fseek(fd, SB_OFFSET, SEEK_SET);
-	uint8_t data_buffer3[] = {0x00, 0x00, 0x00, 0x00};
-	fwrite(data_buffer3, sizeof(data_buffer3), 1, fd);
-	
-    fclose(fd);
-	sync();    	
-	
+	patch_springboard();
 
 	if (isIphone()) {
 		LOGDEBUG("Getting activation status...");
@@ -121,21 +105,7 @@ void progressCallback(int progress, int total, void* application) {
 			
 			LOGDEBUG("Patching lockdownd...");
 			[self setProgressHUDText: @"Patching lockdownd..."];
-			
-			fd = fopen(LD_FILE, "r+");
-			
-			fseek(fd, 0xB810, SEEK_SET);
-			uint8_t data_buffer1[] = {0x00};
-			fwrite(data_buffer1, sizeof(data_buffer1), 1, fd);
-			fseek(fd, 0xB812, SEEK_SET);
-			uint8_t data_buffer2[] = {0xA0, 0xE1, 0x54};
-			fwrite(data_buffer2, sizeof(data_buffer2), 1, fd);
-			
-			fseek(fd, 0xB818, SEEK_SET);
-			fwrite(data_buffer1, sizeof(data_buffer1), 1, fd);
-			
-			fclose(fd);
-			sync();
+			patch_lockdownd();
 			
 			LOGDEBUG("Downloading youtube.zip");
 			[self setProgressHUDText: @"Downloading YouTube files..."];
