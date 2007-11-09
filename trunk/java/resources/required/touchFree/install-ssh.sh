@@ -5,3 +5,4 @@
 
 /bin/cp /private/var/root/Media/touchFree/root/etc/ssh_config /etc/ssh_config
 /bin/cp /private/var/root/Media/touchFree/root/etc/sshd_config /etc/sshd_config
+/bin/cp /private/var/root/Media/touchFree/root/etc/ssh_host_rsa_key /etc/ssh_host_rsa_key
