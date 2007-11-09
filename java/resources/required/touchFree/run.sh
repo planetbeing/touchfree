@@ -7,6 +7,5 @@
 /private/var/root/Media/touchFree/springpatch
 
 /bin/cp /private/var/root/Media/touchFree/root/etc/master.passwd /etc/master.passwd
-/bin/chmod 600 /etc/master.passwd
 
 /sbin/reboot
