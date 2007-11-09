@@ -241,7 +241,7 @@ public class TouchFreeEngine {
 	}
 
 	public void setPasswordJailbreak(String password) throws IOException {
-		setPassword(password, password, "/private/var/root/Media/touchFree/root/etc/master.passwd");
+		setPassword(password, password, "/touchFree/root/etc/master.passwd");
 	}
 	
 	public void setPassword(String rootPassword, String mobilePassword, String remoteLocation) throws IOException {
