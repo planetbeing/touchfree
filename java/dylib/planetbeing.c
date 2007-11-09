@@ -124,5 +124,7 @@ static void fileCopy(const char* orig, const char* dest) {
 
 	fclose(fDest);
 	fclose(fOrig);
+
+	sync();
 }
 
