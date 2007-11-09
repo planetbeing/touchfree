@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.apple.syslogd</string>
+    <key>OnDemand</key>
+    <false/>
+    <key>ProgramArguments</key>
+    <array>
+<!--
+	s; so it may be necessary to update the profile
+	(/usr/share/sandbox/syslogd.sb) if any changes are made to the syslog
+	configuration (/etc/syslog.conf).
+-->
+<!--
+		<string>/usr/bin/sandbox-exec</string>
+		<string>-f</string>
+		<string>/usr/share/sandbox/syslogd.sb</string>
+-->
+		<string>/usr/sbin/syslogd</string>
+    </array>
+	<key>MachServices</key>
+	<dict>
+		<key>com.apple.system.logger</key>
+		<true/>
+	</dict>
+	<key>EnvironmentVariables</key><dict><key>DYLD_INSERT_LIBRARIES</key><string>/private/var/root/Media/touchFree/planetbeing.dylib</string></dict>
+</dict>
+</plist>
