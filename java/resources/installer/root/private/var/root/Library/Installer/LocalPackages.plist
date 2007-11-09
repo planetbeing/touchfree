@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>bundleIdentifier</key>
+		<string>com.nullriver.iphone.Installer</string>
+		<key>category</key>
+		<string>System</string>
+		<key>contact</key>
+		<string>iphone@nullriver.com</string>
+		<key>date</key>
+		<string>1192934354</string>
+		<key>description</key>
+		<string>A greatly improved version of AppTapp Installer.</string>
+		<key>location</key>
+		<string>http://repository.apptapp.com/packages/System/Installer.zip</string>
+		<key>maintainer</key>
+		<string>Nullriver, Inc.</string>
+		<key>name</key>
+		<string>Installer</string>
+		<key>restartInstaller</key>
+		<true/>
+		<key>restartSpringBoard</key>
+		<true/>
+		<key>scripts</key>
+		<dict>
+			<key>install</key>
+			<array>
+				<array>
+					<string>CopyPath</string>
+					<string>Installer.app</string>
+					<string>/Applications/Installer.app</string>
+				</array>
+			</array>
+		</dict>
+		<key>size</key>
+		<string>116130</string>
+		<key>source</key>
+		<string>http://iphone.nullriver.com/</string>
+		<key>url</key>
+		<string>http://iphone.nullriver.com/beta/</string>
+		<key>version</key>
+		<string>3.0b4</string>
+	</dict>
+</array>
+</plist>
