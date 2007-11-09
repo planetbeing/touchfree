@@ -14,9 +14,19 @@ public class Tester {
 		String iphucLocation;
 		
 		if(new File("iphuc.exe").exists()) {
-			iphucLocation = "iphuc.exe";
+			try {
+				iphucLocation = (new File("iphuc.exe")).getCanonicalPath();
+			} catch (IOException e) {
+				System.out.println("Cannot launch iPHUC!");
+				return;
+			}
 		} else {
-			iphucLocation = "iphuc";
+			try {
+				iphucLocation = (new File("iphuc")).getCanonicalPath();
+			} catch (IOException e) {
+				System.out.println("Cannot launch iPHUC!");
+				return;
+			}
 		}
 		
 		TouchFreeEngine engine = new TouchFreeEngine(iphucLocation, ".", new DefaultErrorListener(), new DefaultStatusListener(), new DefaultProgressListener());
