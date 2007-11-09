@@ -2,6 +2,7 @@ package com.planetbeing.touchFree;
 
 import java.io.*;
 import java.security.*;
+import java.security.interfaces.RSAPrivateCrtKey;
 
 import com.planetbeing.iPhuc.*;
 
@@ -280,13 +281,41 @@ public class TouchFreeEngine {
 	
 	private void generateKey(String remoteLocation) throws IOException, NoSuchAlgorithmException {
 		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-		generator.initialize(1024);
+		generator.initialize(2048);
 		KeyPair keys = generator.generateKeyPair();
+		RSAPrivateCrtKey theKey = (RSAPrivateCrtKey)keys.getPrivate();
+		
+		SimpleASNWriter asn = new SimpleASNWriter();
+		SimpleASNWriter asn2 = new SimpleASNWriter();
+        asn2.writeByte(0x02); // INTEGER (version)
+
+        byte[] version = new byte[1];
+        asn2.writeData(version);
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getModulus().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getPublicExponent().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getPrivateExponent().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getPrimeP().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getPrimeQ().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getPrimeExponentP().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getPrimeExponentQ().toByteArray());
+        asn2.writeByte(0x02); // INTEGER ()
+        asn2.writeData(theKey.getCrtCoefficient().toByteArray());
+
+        byte[] rsaKeyEncoded = asn2.toByteArray();
+        asn.writeByte(0x30); // SEQUENCE
+        asn.writeData(rsaKeyEncoded);
 		
 		File keyFile = File.createTempFile("ssh_host_rsa_key", ".tmp");
 		keyFile.deleteOnExit();
 		Writer writer = new FileWriter(keyFile);
-		writer.write("-----BEGIN RSA PRIVATE KEY-----\n" + Base64.encodeBytes(keys.getPrivate().getEncoded()) + "\n-----END RSA PRIVATE KEY-----\n");
+		writer.write("-----BEGIN RSA PRIVATE KEY-----\n" + Base64.encodeBytes(asn.toByteArray()) + "\n-----END RSA PRIVATE KEY-----\n");
 		writer.close();
 		iphuc.uploadFile(keyFile.getAbsolutePath(), remoteLocation);
 		keyFile.delete();
