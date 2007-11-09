@@ -32,7 +32,7 @@ public class IPhuc implements Runnable {
 	LineParser lineParser = new DefaultLineParser();
 	private boolean atPrompt = false;
 	
-	public IPhuc(String path) {
+	public IPhuc(String path) throws IOException {
 		this.path = path;
 		Runtime.getRuntime().addShutdownHook(new IPhucShutdownThread(this));
 		start();
@@ -126,7 +126,7 @@ public class IPhuc implements Runnable {
 		return false;
 	}
 	
-	public void setAfc(String afc)
+	public void setAfc(String afc) throws IOException
 	{
 		done();
 		start();
@@ -135,22 +135,19 @@ public class IPhuc implements Runnable {
 	
 	public void readImage(String localFile, ProgressListener listener) {
 		do {
-			execute("getfile /dev/rdisk0s1 " + getAbsolutePath(localFile) + " 314572800", new ProgressLineParser(listener));
+			execute("getfile /disk " + getAbsolutePath(localFile) + " 314572800", new ProgressLineParser(listener));
 		} while ((new File(localFile)).length() != 314572800);
 	}
 	
 	public void writeImage(String localFile, ProgressListener listener) {
-		execute("putfile " + getAbsolutePath(localFile) + " /dev/rdisk0s1", new ProgressLineParser(listener));
+		execute("putfile " + getAbsolutePath(localFile) + " /disk", new ProgressLineParser(listener));
 	}
 	
-	public void start() {
-		try {
-			atPrompt = false;
-			p = Runtime.getRuntime().exec(path);
-			stdout = p.getInputStream();
-			stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
-		} catch(IOException e) {
-		}
+	public void start() throws IOException {
+		atPrompt = false;
+		p = Runtime.getRuntime().exec(path);
+		stdout = p.getInputStream();
+		stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
 	}
 	
 	public boolean isConnected() {
@@ -321,7 +318,7 @@ public class IPhuc implements Runnable {
                         matchState[i]++;
                         if (matchState[i] == matchLength[i])
                         {
-                        	//System.out.println("matched: " + i);
+                        	System.out.println("matched: " + i);
                         	long currentPos = stream.getFilePointer();
                         	stream.seek(searched + 1 - matchLength[i]);
             	            stream.write(searchBuffers[i][1], 0, searchBuffers[i][1].length);

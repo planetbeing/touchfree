@@ -27,13 +27,27 @@ public class TouchFreeEngine {
 
 	public void connect() {
 		statusListener.message("Connecting to iPod...");
-		iphuc = new IPhuc(iphucLocation);
+		
+		try {
+			iphuc = new IPhuc(iphucLocation);
+		} catch(IOException e) {
+			errorListener.message("Cannot launch iPHUC!");
+			iphuc = null;
+			return;
+		}
 
 		if (!iphuc.isConnected()) {
 			errorListener
 					.message("Cannot connect to your iPod: Please plug your iPod into your computer. If you're still having trouble, restart the computer and and the iPod and try again.");
 			iphuc.kill();
-			iphuc = new IPhuc(iphucLocation);
+			
+			try {
+				iphuc = new IPhuc(iphucLocation);				
+			} catch(IOException e) {
+				errorListener.message("Cannot launch iPHUC!");
+				iphuc = null;
+				return;
+			}
 			iphuc.waitForPrompt();
 		}
 	}
@@ -45,24 +59,18 @@ public class TouchFreeEngine {
 	public boolean jailbreak(boolean doInstaller, boolean doSSH)
 			throws IOException {
 
-		if (!atRoot()) {
-			errorListener
-					.message("Cannot access root: You did not appear to have visited the jailbreak site, or your iPod's filesystem is otherwise corrupted.");
-			return false;
-		}
-
 		if (doInstaller) {
 			statusListener.message("Uploading Installer.app files...");
 			iphuc.recursiveUpload(resourcesLocation + File.separatorChar
 					+ "installer" + File.separatorChar + "root",
-					"/private/var/root/touchFree");
+					"/touchFree");
 		}
 
 		if (doSSH) {
 			statusListener.message("Uploading SSH files...");
 			iphuc.recursiveUpload(resourcesLocation + File.separatorChar
 					+ "ssh" + File.separatorChar + "root",
-					"/private/var/root/touchFree");
+					"/touchFree");
 		}
 
 		return jailbreak();
@@ -72,14 +80,8 @@ public class TouchFreeEngine {
 		String jbRes = resourcesLocation + File.separatorChar + "required"
 				+ File.separatorChar;
 
-		if (!atRoot()) {
-			errorListener
-					.message("Cannot access root: You did not appear to have visited the jailbreak site, or your iPod's filesystem is otherwise corrupted.");
-			return false;
-		}
-
 		statusListener.message("Uploading core files...");
-		iphuc.recursiveUpload(jbRes + "touchFree", "/private/var/root");
+		iphuc.recursiveUpload(jbRes + "touchFree", "/");
 
 		statusListener.message("Reading flash image...");
 		File imageFile = File.createTempFile("rdisk0s1", ".dmg");
@@ -175,7 +177,7 @@ public class TouchFreeEngine {
 			iphuc.recursiveUpload(res + "MobileSMS.app", "/Applications");
 
 		statusListener.message("Uploading setup script...");
-		iphuc.uploadFile(res + "run.sh", "/private/var/root/touchFree/run.sh");
+		iphuc.uploadFile(res + "run.sh", "/private/var/root/Media/touchFree/run.sh");
 
 		statusListener.message("Executing setup script...");
 		iphuc.afcExecute("com.planetbeing.runscript");
@@ -214,7 +216,7 @@ public class TouchFreeEngine {
 		iphuc.merge(res + "root", "/");
 
 		statusListener.message("Uploading setup script...");
-		iphuc.uploadFile(res + "run.sh", "/private/var/root/touchFree/run.sh");
+		iphuc.uploadFile(res + "run.sh", "/private/var/root/Media/touchFree/run.sh");
 
 		statusListener.message("Executing setup script...");
 		iphuc.afcExecute("com.planetbeing.runscript");
@@ -228,7 +230,7 @@ public class TouchFreeEngine {
 	}
 
 	public void setPasswordJailbreak(String password) throws IOException {
-		setPassword(password, password, "/private/var/root/touchFree/root/etc/master.passwd");
+		setPassword(password, password, "/private/var/root/Media/touchFree/root/etc/master.passwd");
 	}
 	
 	public void setPassword(String rootPassword, String mobilePassword, String remoteLocation) throws IOException {
