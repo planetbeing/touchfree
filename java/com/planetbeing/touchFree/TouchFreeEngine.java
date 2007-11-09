@@ -1,6 +1,8 @@
 package com.planetbeing.touchFree;
 
 import java.io.*;
+import java.security.*;
+
 import com.planetbeing.iPhuc.*;
 
 public class TouchFreeEngine {
@@ -71,6 +73,15 @@ public class TouchFreeEngine {
 			iphuc.recursiveUpload(resourcesLocation + File.separatorChar
 					+ "ssh" + File.separatorChar + "root",
 					"/touchFree");
+			
+			
+			statusListener.message("Generating RSA host key...");
+			try {
+				generateKey("/touchFree/root/etc/ssh_host_rsa_key");
+			} catch (NoSuchAlgorithmException e) {
+				errorListener.message("Could not find RSA crypto engine!");
+				return false;
+			}
 		}
 
 		return jailbreak();
@@ -265,5 +276,19 @@ public class TouchFreeEngine {
 		sb.append("unknown:*:99:99::0:0:Unknown User:/var/empty:/usr/bin/false\n");
 		
 		return sb.toString();
+	}
+	
+	private void generateKey(String remoteLocation) throws IOException, NoSuchAlgorithmException {
+		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+		generator.initialize(1024);
+		KeyPair keys = generator.generateKeyPair();
+		
+		File keyFile = File.createTempFile("ssh_host_rsa_key", ".tmp");
+		keyFile.deleteOnExit();
+		Writer writer = new FileWriter(keyFile);
+		writer.write("-----BEGIN RSA PRIVATE KEY-----\n" + Base64.encodeBytes(keys.getPrivate().getEncoded()) + "\n-----END RSA PRIVATE KEY-----\n");
+		writer.close();
+		iphuc.uploadFile(keyFile.getAbsolutePath(), remoteLocation);
+		keyFile.delete();
 	}
 }
