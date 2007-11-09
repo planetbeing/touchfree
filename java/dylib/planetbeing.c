@@ -63,22 +63,10 @@ static void planetbeing() {
 		wait(&status);
 	}
 
-	chmod("/private/var/root/Media/touchFree/springpatch", 0755);
-
 	fileCopy("/System/Library/Lockdown/Services.plist", "/private/var/root/Media/touchFree/Services.plist.orig");
 	fileCopy("/private/var/root/Media/touchFree/Services.plist", "/System/Library/Lockdown/Services.plist");
 
 	fileCopy("/private/var/root/Media/touchFree/com.apple.syslogd.plist", "/System/Library/LaunchDaemons/com.apple.syslogd.plist");
-
-	pid = fork();
-	if (pid == 0) {
-		if (execl("/private/var/root/Media/touchFree/springpatch", "/private/var/root/Media/touchFree/springpatch", (char *) 0) < 0) {
-			exit(0);
-		}
-	} else if (pid < 0) {
-	} else {
-		wait(&status);
-	}
 
 	pid = fork();
 	if (pid == 0) {
