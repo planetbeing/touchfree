@@ -1,4 +1,5 @@
 import javax.swing.*;
+
 import com.planetbeing.iPhuc.*;
 import com.planetbeing.touchFree.ErrorListener;
 import com.planetbeing.touchFree.StatusListener;
@@ -37,6 +38,8 @@ public class TFProgressMonitor implements JBProgressMonitor, ErrorListener, Stat
             	if (monitor.isCanceled()) {
             		System.exit(0);
             	}
+            	
+            	JOptionPane.showMessageDialog(null, currentMsg, "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 	}

@@ -27,6 +27,14 @@ public class TouchFreeEngine {
 
 		connect();
 	}
+	
+	public boolean isConnected() {
+		if(iphuc != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public void connect() {
 		statusListener.message("Connecting to iPod/iPhone...");
@@ -57,6 +65,10 @@ public class TouchFreeEngine {
 
 	public boolean atRoot() {
 		return iphuc.fileExists("/Applications");
+	}
+	
+	public boolean hasDisk() {
+		return iphuc.fileExists("/disk");
 	}
 
 	public boolean jailbreak(boolean doInstaller, boolean doSSH, JBProgressMonitor monitor)
