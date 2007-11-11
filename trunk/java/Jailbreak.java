@@ -73,6 +73,17 @@ public class Jailbreak extends JPanel {
         	tfMonitor = new TFProgressMonitor(monitor);
         	engine = new TouchFreeEngine(iphucLocation, ".", tfMonitor, tfMonitor, tfMonitor);
         	
+        	if(!engine.isConnected()) {
+        		JOptionPane.showMessageDialog(null, "An unrecoverable error was encountered during the jailbreak. See console for details.", "Jailbreak failed", JOptionPane.ERROR_MESSAGE);
+        		System.exit(1);
+        	}
+        	
+        	if(!engine.hasDisk()) {
+        		System.err.println("This utility can only be used if you have already run OktoPrep before updating to 1.1.2.");
+        		JOptionPane.showMessageDialog(null, "This utility can only be used if you have already run OktoPrep before updating to 1.1.2.", "Jailbreak failed", JOptionPane.ERROR_MESSAGE);
+        		System.exit(1);
+        	}
+        	
         	javax.swing.SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                 	monitor.setMaximum((int)engine.jailbreakSize(true, installSSH));
@@ -93,7 +104,7 @@ public class Jailbreak extends JPanel {
     	                public void run() {
     	                	JOptionPane.showMessageDialog(null, "An unrecoverable error was encountered during the jailbreak. See console for details.", "Jailbreak failed", JOptionPane.ERROR_MESSAGE);
     	                	engine.done();
-    	                	System.exit(0);
+    	                	System.exit(1);
     	                }
     	            });
     	    	}
