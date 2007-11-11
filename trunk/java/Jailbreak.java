@@ -1,9 +1,7 @@
 import java.io.*;
 import java.awt.*;
-import java.beans.*;
 import javax.swing.*;
 
-import com.planetbeing.iPhuc.*;
 import com.planetbeing.touchFree.*;
 
 public class Jailbreak extends JPanel {
@@ -22,6 +20,8 @@ public class Jailbreak extends JPanel {
 	
 	private boolean installSSH;
 	private String password;
+	
+	static final long serialVersionUID = -8087775647016766071L;
 	
 	public Jailbreak() {
 		super(new BorderLayout());
