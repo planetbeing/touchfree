@@ -38,7 +38,7 @@ public class IPhuc implements Runnable {
 		start();
 	}
 	
-	public void merge(String localPath, String remoteAbsolutePath) {
+	public void merge(String localPath, String remoteAbsolutePath, JBProgressMonitor monitor) {
 		File localFile = new File(localPath);
 		String path = remoteAbsolutePath.replaceAll(" ", "\\ ");
 		
@@ -46,14 +46,14 @@ public class IPhuc implements Runnable {
 		File[] files = localFile.listFiles();
 		for(int i = 0; i < files.length; i++) {
 			if(files[i].isFile()) {
-				uploadFile(files[i].getAbsolutePath(), path + "/" + files[i].getName());
+				uploadFile(files[i].getAbsolutePath(), path + "/" + files[i].getName(), monitor);
 			} else {
-				recursiveUpload(files[i].getAbsolutePath(), path);
+				recursiveUpload(files[i].getAbsolutePath(), path, monitor);
 			}
 		}		
 	}
 	
-	public void recursiveUpload(String localPath, String remoteAbsolutePath) {
+	public void recursiveUpload(String localPath, String remoteAbsolutePath, JBProgressMonitor monitor) {
 		File localFile = new File(localPath);
 		String path = (remoteAbsolutePath + "/" + localFile.getName()).replaceAll(" ", "\\ ");
 		
@@ -61,14 +61,14 @@ public class IPhuc implements Runnable {
 		File[] files = localFile.listFiles();
 		for(int i = 0; i < files.length; i++) {
 			if(files[i].isFile()) {
-				uploadFile(files[i].getAbsolutePath(), path + "/" + files[i].getName());
+				uploadFile(files[i].getAbsolutePath(), path + "/" + files[i].getName(), monitor);
 			} else {
-				recursiveUpload(files[i].getAbsolutePath(), path);
+				recursiveUpload(files[i].getAbsolutePath(), path, monitor);
 			}
 		}
 	}
 	
-	public void uploadFile(String localPath, String remoteAbsolutePath) {
+	public void uploadFile(String localPath, String remoteAbsolutePath, JBProgressMonitor monitor) {
 		File localFile = new File(localPath);
 		String remoteDir = (new File(remoteAbsolutePath)).getParent().replace(File.separatorChar, '/').replaceAll(" ", "\\ ");
 		mkdir(remoteDir);
@@ -77,6 +77,8 @@ public class IPhuc implements Runnable {
 		while(getFileSize(remoteAbsolutePath) != localFile.length()) {
 			execute("putfile " + getAbsolutePath(localPath) + " " + remoteAbsolutePath);
 		}
+		
+		monitor.progress((int)localFile.length());
 	}
 	
 	public String getAbsolutePath(String path) {
@@ -134,13 +136,17 @@ public class IPhuc implements Runnable {
 	}
 	
 	public void readImage(String localFile, ProgressListener listener) {
+		listener.start();
 		do {
 			execute("getfile /disk " + getAbsolutePath(localFile) + " 314572800", new ProgressLineParser(listener));
 		} while ((new File(localFile)).length() != 314572800);
+		listener.progress(314572800, 314572800);
 	}
 	
 	public void writeImage(String localFile, ProgressListener listener) {
+		listener.start();
 		execute("putfile " + getAbsolutePath(localFile) + " /disk", new ProgressLineParser(listener));
+		listener.progress(314572800, 314572800);
 	}
 	
 	public void start() throws IOException {
@@ -281,6 +287,7 @@ public class IPhuc implements Runnable {
         long fileLength;
 
         //gui.SetProgressBar(0);
+        listener.start();
 
         try {
 	        for (int i = 0; i < numSearches; i++)
@@ -340,6 +347,7 @@ public class IPhuc implements Runnable {
         {
         	return -1;
         }
+        listener.progress(fileLength, fileLength);
 
         //gui.SetProgressBar(100);
 
