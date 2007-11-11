@@ -11,11 +11,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-struct PatchByte {
-        unsigned int offset;
-        uint8_t old;
-        uint8_t new;
-};
+#include "patch.h"
 
 int isIpod() {
 	struct utsname u;
@@ -117,64 +113,6 @@ char* activationState() {
 	
 	return activationState;
 }
-
-void patchBytes(char* MS_FILE, long MS_SIZE, struct PatchByte *patches, char enforce) {
-    unsigned char *DATA;
-    FILE *fd;
-    struct stat s;
-    char *filename;
-    int len;
-    char *newName;
-    struct PatchByte *patch;
-    int offset;
-    unsigned char old;
-
-    filename = MS_FILE;
-    
-    len = strlen(filename);
-    
-    newName = malloc(len+5);
-    strcpy(newName, filename);
-    strcpy(newName+len,".new");
-    
-    if(stat(filename, &s)!=0) return;
-    if(s.st_size != MS_SIZE) return;
-       
-    fd = fopen(filename, "rb");
-    if(fd == NULL) return;
-    DATA = malloc(MS_SIZE+1);
-    if(DATA == NULL) return;
-    fread(DATA, MS_SIZE, 1, fd);
-    fclose(fd);
-
-    patch = patches;
-    while (patch->offset) {
-            offset = patch->offset;
-            old = DATA[offset];
-            if (enforce == 1 && old != patch->old) {
-                    return;
-            }
-            DATA[offset] = patch->new;
-            patch++;
-    }
-
-    fd = fopen(newName, "wb");
-    if(fd == NULL) return;
-    if(fwrite(DATA, MS_SIZE, 1, fd) != 1) return;
-    fclose(fd);
-
-    sync();
-    
-    unlink(filename);
-    link(newName,filename);
-    unlink(newName);
-
-    sync();
-
-    free(newName);
-    free(DATA);
-}
-
 
 int main(int argc, const char* argv) {
 	char* state;
