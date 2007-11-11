@@ -361,17 +361,6 @@ public class Base64
     /** Defeats instantiation. */
     private Base64(){}
     
-    /**
-     * Prints command line usage.
-     *
-     * @param msg A message to include with usage info.
-     */
-    private final static void usage( String msg )
-    {
-        System.err.println( msg );
-        System.err.println( "Usage: java Base64 -e|-d inputfile outputfile" );
-    }   // end usage
-    
     
 /* ********  E N C O D I N G   M E T H O D S  ******** */    
     
@@ -523,7 +512,7 @@ public class Base64
         
         // Isolate options
         int gzip           = (options & GZIP);
-        int dontBreakLines = (options & DONT_BREAK_LINES);
+        //int dontBreakLines = (options & DONT_BREAK_LINES);
         
         try
         {
@@ -1286,7 +1275,10 @@ public class Base64
 		private byte[]  alphabet;	    // Local copies to avoid extra method calls
 		private byte[]  decodabet;		// Local copies to avoid extra method calls
         
-        
+		public byte[] getAlphabet() {
+			return alphabet;
+		}
+		
         /**
          * Constructs a {@link Base64.InputStream} in DECODE mode.
          *
@@ -1330,8 +1322,8 @@ public class Base64
             this.position     = -1;
             this.lineLength   = 0;
 			this.options      = options; // Record for later, mostly to determine which alphabet to use
-			this.alphabet     = getAlphabet(options);
-			this.decodabet    = getDecodabet(options);
+			this.alphabet     = Base64.getAlphabet(options);
+			this.decodabet    = Base64.getDecodabet(options);
         }   // end constructor
         
         /**
@@ -1523,6 +1515,10 @@ public class Base64
 		private byte[]  alphabet;	    // Local copies to avoid extra method calls
 		private byte[]  decodabet;		// Local copies to avoid extra method calls
         
+		public byte[] getAlphabet() {
+			return alphabet;
+		}
+		
         /**
          * Constructs a {@link Base64.OutputStream} in ENCODE mode.
          *
@@ -1567,8 +1563,8 @@ public class Base64
             this.suspendEncoding = false;
             this.b4           = new byte[4];
 			this.options      = options;
-			this.alphabet     = getAlphabet(options);
-			this.decodabet    = getDecodabet(options);
+			this.alphabet     = Base64.getAlphabet(options);
+			this.decodabet    = Base64.getDecodabet(options);
         }   // end constructor
         
         
