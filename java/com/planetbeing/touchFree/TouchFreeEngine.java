@@ -29,25 +29,25 @@ public class TouchFreeEngine {
 	}
 
 	public void connect() {
-		statusListener.message("Connecting to iPod...");
+		statusListener.message("Connecting to iPod/iPhone...");
 		
 		try {
 			iphuc = new IPhuc(iphucLocation);
 		} catch(IOException e) {
-			errorListener.message("Cannot launch iPHUC!");
+			errorListener.error("Cannot launch iPHUC!");
 			iphuc = null;
 			return;
 		}
 
 		if (!iphuc.isConnected()) {
 			errorListener
-					.message("Cannot connect to your iPod: Please plug your iPod into your computer. If you're still having trouble, restart the computer and and the iPod and try again.");
+					.error("Cannot connect to your device: Please plug your iPod/iPhone into your computer. If you're still having trouble, restart the computer, reconnect the device and try again.");
 			iphuc.kill();
 			
 			try {
 				iphuc = new IPhuc(iphucLocation);				
 			} catch(IOException e) {
-				errorListener.message("Cannot launch iPHUC!");
+				errorListener.error("Cannot launch iPHUC!");
 				iphuc = null;
 				return;
 			}
@@ -59,41 +59,72 @@ public class TouchFreeEngine {
 		return iphuc.fileExists("/Applications");
 	}
 
-	public boolean jailbreak(boolean doInstaller, boolean doSSH)
+	public boolean jailbreak(boolean doInstaller, boolean doSSH, JBProgressMonitor monitor)
 			throws IOException {
 
 		if (doInstaller) {
 			statusListener.message("Uploading Installer.app files...");
 			iphuc.recursiveUpload(resourcesLocation + File.separatorChar
 					+ "installer" + File.separatorChar + "root",
-					"/touchFree");
+					"/touchFree", monitor);
 		}
 
 		if (doSSH) {
 			statusListener.message("Uploading SSH files...");
 			iphuc.recursiveUpload(resourcesLocation + File.separatorChar
 					+ "ssh" + File.separatorChar + "root",
-					"/touchFree");
+					"/touchFree", monitor);
 			
 			
 			statusListener.message("Generating RSA host key...");
 			try {
 				generateKey("/touchFree/root/etc/ssh_host_rsa_key");
 			} catch (NoSuchAlgorithmException e) {
-				errorListener.message("Could not find RSA crypto engine!");
+				errorListener.error("Could not find RSA crypto engine!");
 				return false;
 			}
 		}
 
-		return jailbreak();
+		return jailbreak(monitor);
+	}
+	
+	public long jailbreakSize(boolean doInstaller, boolean doSSH) {
+		long total = 0;
+		
+		if (doInstaller) {
+			total += calculateFolderSize(resourcesLocation + File.separatorChar
+					+ "installer" + File.separatorChar + "root");
+		}
+		
+		if (doSSH) {
+			total += calculateFolderSize(resourcesLocation + File.separatorChar
+					+ "ssh" + File.separatorChar + "root");
+		}
+		
+		total += jailbreakSize();
+		
+		return total;
+	}
+	
+	public long jailbreakSize() {
+		long total = 0;
+		String jbRes = resourcesLocation + File.separatorChar + "required"
+			+ File.separatorChar;
+		
+		total += calculateFolderSize(jbRes + "touchFree");
+		total += 314572800;
+		total += 314572800;
+		total += 314572800;
+		
+		return total;
 	}
 
-	public boolean jailbreak() throws IOException {
+	public boolean jailbreak(JBProgressMonitor monitor) throws IOException {
 		String jbRes = resourcesLocation + File.separatorChar + "required"
 				+ File.separatorChar;
 
 		statusListener.message("Uploading core files...");
-		iphuc.recursiveUpload(jbRes + "touchFree", "/");
+		iphuc.recursiveUpload(jbRes + "touchFree", "/", monitor);
 
 		statusListener.message("Reading flash image...");
 		File imageFile = File.createTempFile("rdisk0s1", ".dmg");
@@ -105,7 +136,7 @@ public class TouchFreeEngine {
 				new String[] { jbRes + "com.apple.syslogd.plist",
 						jbRes + "com.apple.syslogd.new.plist" },
 				new String[] { jbRes + "fstab", jbRes + "fstab.new" } },
-				new DefaultProgressListener());
+				progressListener);
 
 		statusListener.message("Writing flash image...");
 		iphuc.writeImage(imageFile.getAbsolutePath(), progressListener);
@@ -114,7 +145,7 @@ public class TouchFreeEngine {
 		return true;
 	}
 
-	public void installIPhoneApps() throws IOException {
+	/*public void installIPhoneApps() throws IOException {
 		String res = resourcesLocation + File.separatorChar + "iphone"
 				+ File.separatorChar;
 
@@ -239,7 +270,7 @@ public class TouchFreeEngine {
 
 		statusListener.message("Restarting SpringBoard...");
 		iphuc.afcExecute("com.planetbeing.killsb");
-	}
+	}*/
 
 	public void setPasswordJailbreak(String password) throws IOException {
 		setPassword(password, password, "/touchFree/root/etc/master.passwd");
@@ -251,7 +282,7 @@ public class TouchFreeEngine {
 		Writer writer = new FileWriter(passwdFile);
 		writer.write(genPasswd(rootPassword, mobilePassword));
 		writer.close();
-		iphuc.uploadFile(passwdFile.getAbsolutePath(), remoteLocation);
+		iphuc.uploadFile(passwdFile.getAbsolutePath(), remoteLocation, new DefaultJBProgressMonitor());
 		passwdFile.delete();
 	}
 	
@@ -317,7 +348,26 @@ public class TouchFreeEngine {
 		Writer writer = new FileWriter(keyFile);
 		writer.write("-----BEGIN RSA PRIVATE KEY-----\n" + Base64.encodeBytes(asn.toByteArray()) + "\n-----END RSA PRIVATE KEY-----\n");
 		writer.close();
-		iphuc.uploadFile(keyFile.getAbsolutePath(), remoteLocation);
+		iphuc.uploadFile(keyFile.getAbsolutePath(), remoteLocation, new DefaultJBProgressMonitor());
 		keyFile.delete();
+	}
+	
+	public static long calculateFolderSize(String folder) {
+		File file = new File(folder);
+		long total = 0;
+		if(file.isDirectory()) {
+			File[] files = file.listFiles();
+			for(int i = 0; i < files.length; i++) {
+				try {
+					total += calculateFolderSize(files[i].getCanonicalPath());
+				} catch (IOException e) {
+					
+				}
+			}
+		} else {
+			total = file.length();
+		}
+		
+		return total;
 	}
 }
