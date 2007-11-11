@@ -166,7 +166,11 @@ public class Jailbreak extends JPanel {
 	public static void main(String[] args) {
 		try {
 			if(System.getProperty("os.name").contains("Mac")) {
-				iphucLocation = (new File("iphuc")).getCanonicalPath();
+				if(System.getProperty("os.arch").contains("ppc")) {
+					iphucLocation = (new File("iphuc.ppc")).getCanonicalPath();
+				} else {
+					iphucLocation = (new File("iphuc")).getCanonicalPath();
+				}
 			} else {
 				iphucLocation = (new File("iphuc.exe")).getCanonicalPath();
 			}
