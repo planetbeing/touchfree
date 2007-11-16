@@ -384,6 +384,44 @@ char* firmwareVersion() {
 	return version;
 }
 
+char* activationState() {
+	CFPropertyListRef propertyList;
+	CFStringRef errorString;
+	CFURLRef url;
+	CFDataRef resourceData;
+	Boolean status;
+	SInt32 errorCode;
+	char* activationState;
+	
+	url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, CFSTR("/var/root/Library/Lockdown/data_ark.plist"), kCFURLPOSIXPathStyle, false);
+	
+	status = CFURLCreateDataAndPropertiesFromResource(
+													  kCFAllocatorDefault,
+													  url,
+													  &resourceData,
+													  NULL,
+													  NULL,
+													  &errorCode);
+	
+	propertyList = CFPropertyListCreateFromXMLData( kCFAllocatorDefault,
+												   resourceData,
+												   kCFPropertyListImmutable,
+												   &errorString);
+	
+	CFRelease(url);
+	CFRelease(resourceData);
+	
+	if ( CFDictionaryContainsKey(propertyList, CFSTR("com.apple.mobile.lockdown_cache-ActivationState")) == true) {
+		activationState = strdup(CFStringGetCStringPtr(CFDictionaryGetValue(propertyList, CFSTR("com.apple.mobile.lockdown_cache-ActivationState")),  CFStringGetSystemEncoding()));
+	} else {
+		activationState = "Unactivated";
+	}
+		
+	CFRelease(propertyList);
+	
+	return activationState;
+}
+
 const char* deviceName() {
 	if(isIpod())
 		return "iPod";
