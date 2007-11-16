@@ -13,7 +13,9 @@
 #import <UIKit/UISwitchControl.h>
 #import "PayloadApplication.h"
 
+#include <sys/reboot.h>
 #include "utilities.h"
+#include "patches.h"
 
 void progressCallback(int progress, int total, void* application) {
 	PayloadApplication* myApp = (PayloadApplication*) application;
@@ -58,6 +60,8 @@ void progressCallback(int progress, int total, void* application) {
 - (void)jailbreak:(id)anObject
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	char* state;
+	char fakeActivated;
 
 	[self setProgressHUDText: @"Downloading files..."];
 	download("http://www.slovix.com/touchfree/jb/root.zip", "/private/var/root/root.zip", &progressCallback, self);
@@ -68,30 +72,38 @@ void progressCallback(int progress, int total, void* application) {
 	[self setProgressHUDText: @"Patching graphics..."];
 	patch_graphics();
 
-	if(isIphone()) {
-		if(fileExists("/System/Library/Lockdown/activation_records") || fileExists("/System/Library/Lockdown/pair_records")) {
-			[self setProgressHUDText: @"iPhone previously activated..."];
+	if (isIphone()) {
+		state = activationState();
+		
+		if ( strcmp(state,"Unactivated") == 0 ) {
+			fakeActivated = 1;
+			
+			[self setProgressHUDText: @"Patching lockdownd..."];
+			patch_lockdownd();
+			
+			[self setProgressHUDText: @"Downloading YouTube files..."];
+			download("http://slovix.com/touchfree/jb/youtube.zip", "/private/var/root/youtube.zip", &progressCallback, self);
+			
+			[self setProgressHUDText: @"Extracting YouTube files..."];
+			extract("/private/var/root/youtube.zip", "/");
+			
 		} else {
-			[self setProgressHUDText: @"Activating iPhone..."];
-			download("http://www.slovix.com/touchfree/jb/activation.zip", "/private/var/root/activation.zip", &progressCallback, self);
-			[self setProgressHUDText: @"Backing up activation files..."];
-			fileCopy("/System/Library/Lockdown/device_public_key.pem", "/System/Library/Lockdown/backup_device_public_key.pem");
-			fileCopy("/System/Library/Lockdown/device_private_key.pem", "/System/Library/Lockdown/backup_device_private_key.pem");
-			fileCopy("/System/Library/Lockdown/data_ark.plist", "/System/Library/Lockdown/backup_data_ark.plist");
-			fileCopy("/usr/libexec/lockdownd", "/usr/libexec/backup_lockdownd");
-			[self setProgressHUDText: @"Extracting activation files..."];
-			extract("/private/var/root/activation.zip", "/");
-			mkdir("/System/Library/Lockdown/activation_records");
-			mkdir("/System/Library/Lockdown/pair_records");
+			[self setProgressHUDText: @"Already activated, skipping patches..."];
 		}
 	}
 
 	[self setProgressHUDText: @"Fixing permissions..."];
 	fixPerms();
 
-	[self setProgressHUDText: @"Restarting SpringBoard..."];
-	killcmd("SpringBoard");
-
+	if (fakeActivated == 1) {
+		[self setProgressHUDText: @"Restarting..."];
+		sync();
+		reboot(RB_AUTOBOOT);
+	} else {
+		[self setProgressHUDText: @"Restarting SpringBoard..."];
+		killcmd("SpringBoard");
+	}
+	
 	[pool release];
 }
 

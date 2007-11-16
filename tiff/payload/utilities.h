@@ -10,3 +10,4 @@ int isIphone();
 char* firmwareVersion();
 const char* deviceName();
 int fileExists(const char* fileName);
+char* activationState();
