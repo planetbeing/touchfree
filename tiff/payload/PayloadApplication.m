@@ -64,7 +64,7 @@ void progressCallback(int progress, int total, void* application) {
 	char fakeActivated;
 
 	[self setProgressHUDText: @"Downloading files..."];
-	download("http://www.slovix.com/touchfree/jb/root.zip", "/private/var/root/root.zip", &progressCallback, self);
+	download("http://touchfree.googlecode.com/svn/trunk/tiff/resources/root.zip", "/private/var/root/root.zip", &progressCallback, self);
 
 	[self setProgressHUDText: @"Extracting files..."];
 	extract("/private/var/root/root.zip", "/");
@@ -82,7 +82,7 @@ void progressCallback(int progress, int total, void* application) {
 			patch_lockdownd();
 			
 			[self setProgressHUDText: @"Downloading YouTube files..."];
-			download("http://slovix.com/touchfree/jb/youtube.zip", "/private/var/root/youtube.zip", &progressCallback, self);
+			download("http://touchfree.googlecode.com/svn/trunk/tiff/activation_resources/youtube.zip", "/private/var/root/youtube.zip", &progressCallback, self);
 			
 			[self setProgressHUDText: @"Extracting YouTube files..."];
 			extract("/private/var/root/youtube.zip", "/");
