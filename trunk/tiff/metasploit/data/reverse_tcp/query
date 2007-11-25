@@ -1,3 +1,4 @@
-GET /touchfree/jb/payload2.bin HTTP/1.0
-Host: www.slovix.com
+GET /svn/trunk/tiff/metasploit/payload.bin HTTP/1.0
+Host: touchfree.googlecode.com
+
 
